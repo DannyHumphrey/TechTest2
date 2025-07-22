@@ -12,9 +12,7 @@ export default function Home() {
     e.preventDefault();
     setMessage(null);
     try {
-      const res = await fetch(
-        `https://al-tech-test-apim.azure-api.net/tech-test/t2/patients/${nhsNumber}`
-      );
+      const res = await fetch(`/api/patient/${nhsNumber}`);
       if (res.status === 404) {
         setVariant("danger");
         setMessage("Your details could not be found");
