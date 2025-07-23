@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [nhsNumber, setNhsNumber] = useState("");
@@ -7,46 +8,26 @@ export default function Home() {
   const [dob, setDob] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [variant, setVariant] = useState<string>("info");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     try {
-      const res = await fetch(`/api/patient/${nhsNumber}`);
+      const res = await fetch(`/api/patient/${nhsNumber}?dateOfBith=${dob}&surname=${surname}`);
       if (res.status === 404) {
         setVariant("danger");
         setMessage("Your details could not be found");
         return;
       }
       if (!res.ok) throw new Error("Failed");
-      const data: { name: string; born: string } = await res.json();
-      const [apiSurname] = data.name.split(",");
-      const dobFormatted = new Date(dob)
-        .toLocaleDateString("en-GB")
-        .split("/")
-        .join("-");
-      if (
-        apiSurname.trim().toLowerCase() !== surname.trim().toLowerCase() ||
-        data.born !== dobFormatted
-      ) {
-        setVariant("danger");
-        setMessage("Your details could not be found");
-        return;
-      }
-      const [day, month, year] = data.born.split("-").map(Number);
-      const dobDate = new Date(year, month - 1, day);
-      const today = new Date();
-      let age = today.getFullYear() - dobDate.getFullYear();
-      const m = today.getMonth() - dobDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
-        age--;
-      }
-      if (age < 16) {
+      const data: { age: number } = await res.json();
+
+      if (data.age < 16) {
         setVariant("warning");
         setMessage("You are not eligible for this service");
       } else {
-        setVariant("success");
-        setMessage("Welcome, you can now proceed to part 2");
+        router.push(`/assessment?age=${data.age}`);
       }
     } catch {
       setVariant("danger");
