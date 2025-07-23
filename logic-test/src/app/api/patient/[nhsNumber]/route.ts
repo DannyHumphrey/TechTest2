@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   _request: Request,
-  { params }: { params: { nhsNumber: string, dateOfBith: string, surname: string } }
+  { params }: 
+  { params: { nhsNumber: string } }
 ) {
-  const { nhsNumber, dateOfBith, surname } = params;
+  const { nhsNumber } = await params;
+  const url = new URL(_request.url);
+  const searchParams = url.searchParams;
+  const dateOfBirth = searchParams.get("dateOfBirth") || "";
+  
+  const surname = searchParams.get("surname") || "";
+
   const subscriptionKey = process.env.SUBSCRIPTION_KEY;
 
   if (!subscriptionKey) {
@@ -31,10 +38,13 @@ export async function GET(
 
     const data: { name: string; born: string } = await res.json();
     const [apiSurname] = data.name.split(",");
-    const dobFormatted = new Date(dateOfBith)
+    const dobFormatted = new Date(dateOfBirth)
     .toLocaleDateString("en-GB")
     .split("/")
     .join("-");
+
+    console.log(data.born)
+    console.log(dobFormatted);
 
     if (
         apiSurname.trim().toLowerCase() !== surname.trim().toLowerCase() ||
@@ -47,7 +57,7 @@ export async function GET(
     const today = new Date();
     let age = today.getFullYear() - dobDate.getFullYear();
     const m = today.getMonth() - dobDate.getMonth();
-    
+
     if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
         age--;
     }

@@ -14,7 +14,7 @@ export default function Home() {
     e.preventDefault();
     setMessage(null);
     try {
-      const res = await fetch(`/api/patient/${nhsNumber}?dateOfBith=${dob}&surname=${surname}`);
+      const res = await fetch(`/api/patient/${nhsNumber}?dateOfBirth=${dob}&surname=${surname}`);
       if (res.status === 404) {
         setVariant("danger");
         setMessage("Your details could not be found");
