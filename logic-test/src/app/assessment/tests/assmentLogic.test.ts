@@ -1,4 +1,4 @@
-import { getAgeGroup, evaluateAssessment } from "./assmentLogic";
+import { getAgeGroup, evaluateAssessment } from "../assmentLogic";
 
 describe('getAgeGroup', () => {
   it('returns correct group boundaries', () => {

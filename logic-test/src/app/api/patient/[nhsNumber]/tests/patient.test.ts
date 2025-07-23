@@ -1,4 +1,4 @@
-import { verifyPatient } from './patient';
+import { verifyPatient } from '../patient';
 
 describe('verifyPatient', () => {
   it('returns age when surname and dob match', () => {
