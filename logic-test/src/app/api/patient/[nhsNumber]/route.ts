@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchPatient, verifyPatient } from './patient';
 
 export async function GET(
   _request: Request,
@@ -19,51 +20,17 @@ export async function GET(
   }
 
   try {
-    const res = await fetch(
-      `https://al-tech-test-apim.azure-api.net/tech-test/t2/patients/${nhsNumber}`,
-      {
-        headers: {
-          'Ocp-Apim-Subscription-Key': subscriptionKey,
-        },
-      }
-    );
+    const patient = await fetchPatient(nhsNumber, subscriptionKey);
+    const age = verifyPatient(patient, surname, dateOfBirth);
 
-    if (res.status === 404) {
+    if (age === null) {
       return new NextResponse(null, { status: 404 });
     }
 
-    if (!res.ok) {
-      return new NextResponse(null, { status: res.status });
-    }
-
-    const data: { name: string; born: string } = await res.json();
-    const [apiSurname] = data.name.split(",");
-    const dobFormatted = new Date(dateOfBirth)
-    .toLocaleDateString("en-GB")
-    .split("/")
-    .join("-");
-
-    console.log(data.born)
-    console.log(dobFormatted);
-
-    if (
-        apiSurname.trim().toLowerCase() !== surname.trim().toLowerCase() ||
-        data.born !== dobFormatted
-    ) {
-        return new NextResponse(null, {status: 404});
-    }
-    const [day, month, year] = data.born.split("-").map(Number);
-    const dobDate = new Date(year, month - 1, day);
-    const today = new Date();
-    let age = today.getFullYear() - dobDate.getFullYear();
-    const m = today.getMonth() - dobDate.getMonth();
-
-    if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
-        age--;
-    }
-
-    return NextResponse.json({ age: age });
-  } catch {
-    return new NextResponse(null, { status: 500 });
+    return NextResponse.json({ age });
+  } catch(err: any) {
+    if (err.message?.includes('404')) {
+      return new NextResponse(null, { status: 404 });
   }
+}
 }
